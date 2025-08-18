@@ -1,6 +1,5 @@
 
 "use client"
-
 import { useState } from "react"
 import { SearchBar } from "../components/dashboard/SearchBar"
 import { PackageGrid } from "../components/dashboard/PackageGrid"
@@ -10,6 +9,11 @@ import { useNavigate } from "react-router-dom"
 import { PackageManagement } from "../components/management/PackageManagement"
 import { NotificationContainer } from "../components/notifications/NotificationContainer"
 import { useNotifications } from "../hooks/useNotifications"
+import { useOrders } from "../hooks/useOrders"
+import { OrdersSidebar } from "../components/orders/OrdersSidebar"
+import { useCart } from "../hooks/useCart" // Importez useCart
+import { CartSidebar } from "../components/cart/CartSidebar" // Importez CartSidebar
+import { Badge } from "../components/ui/badge"
 
 interface DashboardProps {
   user: {
@@ -21,9 +25,20 @@ interface DashboardProps {
 
 export const Dashboard = ({ user, onLogout }: DashboardProps) => {
   const navigate = useNavigate()
-  const [cartCount] = useState(0)
   const [showManagement, setShowManagement] = useState(false)
   const { notifications, removeNotification } = useNotifications()
+  const { orders, isOrdersOpen, openOrders, closeOrders, getTotalOrders } = useOrders()
+  const {
+    cartItems,
+    isCartOpen,
+    addToCart,
+    updateQuantity,
+    removeFromCart,
+    clearCart,
+    openCart,
+    closeCart,
+    getTotalItems,
+  } = useCart() // Ajoutez useCart
 
   const handleSearch = (query: string) => {
     console.log("Recherche:", query)
@@ -36,13 +51,11 @@ export const Dashboard = ({ user, onLogout }: DashboardProps) => {
   }
 
   const handleCartClick = () => {
-    console.log("Ouverture du panier")
-    // Navigation future vers le panier
+    openCart() // Ouvre la sidebar du panier
   }
 
   const handleOrdersClick = () => {
-    console.log("Historique des commandes")
-    // Navigation future vers l'historique
+    openOrders() // Ouvre la sidebar des commandes
   }
 
   const handleSettingsClick = () => {
@@ -52,6 +65,26 @@ export const Dashboard = ({ user, onLogout }: DashboardProps) => {
 
   const handleBackToDashboard = () => {
     setShowManagement(false)
+  }
+
+  const handleOrderClick = (order: any) => {
+    console.log("Commande sélectionnée:", order.id)
+    // Logique future pour afficher les détails de la commande
+  }
+
+  const handleValidateOrder = () => {
+    if (cartItems.length > 0) {
+      // Logique pour valider la commande (à implémenter si nécessaire)
+      console.log("Validation de la commande")
+      clearCart()
+      closeCart()
+    }
+  }
+
+  const handleClearCart = () => {
+    clearCart()
+    // Optionnel : Ajouter une notification via useToast si disponible
+    console.log("Panier vidé")
   }
 
   if (showManagement && (user.role === "ADMIN" || user.role === "MANAGER")) {
@@ -78,11 +111,9 @@ export const Dashboard = ({ user, onLogout }: DashboardProps) => {
             </div>
           </div>
         </header>
-
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <PackageManagement />
         </main>
-
         <NotificationContainer notifications={notifications} onRemove={removeNotification} />
       </div>
     )
@@ -95,24 +126,44 @@ export const Dashboard = ({ user, onLogout }: DashboardProps) => {
         <div className="mb-8">
           <SearchBar onSearch={handleSearch} />
         </div>
-
         {/* Actions rapides */}
         <div className="mb-8 flex flex-wrap gap-4">
-          <Button variant="outline" onClick={handleCartClick} className="flex items-center space-x-2 bg-transparent">
+          <Button
+            variant="outline"
+            onClick={handleCartClick}
+            className="flex items-center space-x-2 bg-transparent relative"
+          >
             <ShoppingCart className="w-4 h-4" />
             <span>Panier</span>
-            {cartCount > 0 && (
-              <span className="bg-primary text-primary-foreground text-xs rounded-full px-2 py-1 min-w-[20px] h-5 flex items-center justify-center">
-                {cartCount}
-              </span>
+            {/* {getTotalItems() > 0 && (
+              <Badge className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs bg-primary">
+                {getTotalItems()}
+              </Badge>
+            )} */}
+            {getTotalItems() > 0 && (
+              <Badge className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs bg-red-600 text-white">
+                {getTotalItems()}
+              </Badge>
             )}
           </Button>
-
-          <Button variant="outline" onClick={handleOrdersClick} className="flex items-center space-x-2 bg-transparent">
+          <Button
+            variant="outline"
+            onClick={handleOrdersClick}
+            className="flex items-center space-x-2 bg-transparent relative"
+          >
             <Receipt className="w-4 h-4" />
             <span>Commandes</span>
+            {/* {getTotalOrders() > 0 && (
+              <Badge className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs bg-green-600">
+                {getTotalOrders()}
+              </Badge>
+            )} */}
+            {getTotalOrders() > 0 && (
+              <Badge className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs bg-green-600 text-white">
+                {getTotalOrders()}
+              </Badge>
+            )}
           </Button>
-
           {(user.role === "ADMIN" || user.role === "MANAGER") && (
             <Button
               variant="outline"
@@ -124,17 +175,30 @@ export const Dashboard = ({ user, onLogout }: DashboardProps) => {
             </Button>
           )}
         </div>
-
         {/* Titre de section */}
         <div className="mb-6">
           <h2 className="text-2xl font-bold text-foreground mb-2">Catégories de plats</h2>
           <p className="text-muted-foreground">Sélectionnez une catégorie pour voir les plats disponibles</p>
         </div>
-
         {/* Grille des packages */}
         <PackageGrid onPackageSelect={handlePackageSelect} />
       </main>
       <NotificationContainer notifications={notifications} onRemove={removeNotification} />
+      <OrdersSidebar
+        isOpen={isOrdersOpen}
+        onClose={closeOrders}
+        orders={orders}
+        onOrderClick={handleOrderClick}
+      />
+      <CartSidebar
+        isOpen={isCartOpen}
+        onClose={closeCart}
+        cartItems={cartItems}
+        onUpdateQuantity={updateQuantity}
+        onRemoveItem={removeFromCart}
+        onValidateOrder={handleValidateOrder}
+        onClearCart={handleClearCart}
+      />
     </div>
   )
 }

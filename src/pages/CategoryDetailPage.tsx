@@ -18,6 +18,7 @@ import { InvoiceModal } from "../components/orders/InvoiceModal"
 import { useCart } from "../hooks/useCart"
 import { useOrders, type Order } from "../hooks/useOrders"
 import { FoodManagement } from "../components/management/FoodManagement"
+// import { useAppContext } from "../contexts/AppContext"
 
 export const CategoryDetailPage = () => {
   const { packageId } = useParams<{ packageId: string }>()
@@ -32,6 +33,7 @@ export const CategoryDetailPage = () => {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
   const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false)
   const [showFoodManagement, setShowFoodManagement] = useState(false)
+  // const { cart } = useAppContext()
 
   const {
     cartItems,
