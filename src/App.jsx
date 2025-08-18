@@ -1,4 +1,3 @@
-
 import { Toaster } from "./components/ui/toaster";
 import { Toaster as Sonner } from "./components/ui/sonner";
 import { TooltipProvider } from "./components/ui/tooltip";
@@ -28,6 +27,10 @@ const App = () => {
               path="/login"
               element={user ? <Navigate to="/dashboard" /> : <LoginPage />}
             />
+            <Route
+              path="/"
+              element={user ? <Navigate to="/dashboard" /> : <LoginPage />}
+            />
 
             {/* Routes protégées avec Layout commun */}
             <Route
@@ -47,7 +50,10 @@ const App = () => {
             >
               <Route path="/dashboard" element={<DashboardPage />} />
               {/* <Route path="/category/:id" element={<CategoryDetailPage />} /> */}
-              <Route path="/category/:packageId" element={<CategoryDetailPage />} />
+              <Route
+                path="/category/:packageId"
+                element={<CategoryDetailPage />}
+              />
               {/* Ajoute ici toutes les pages qui doivent garder le header */}
             </Route>
 
